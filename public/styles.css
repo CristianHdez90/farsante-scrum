@@ -103,3 +103,5 @@ label.field{display:block;font-weight:800;font-size:11px;letter-spacing:.5px;col
 .invitation-notice{padding:12px;border:1px solid var(--mint);border-radius:12px;color:var(--mint)}
 
 .log-clue{min-width:0;flex:1;overflow-wrap:anywhere}
+
+.theme-select{font:inherit;width:100%;max-width:100%;background:#131729;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}.theme-select:focus{outline:2px solid var(--purple);outline-offset:2px}

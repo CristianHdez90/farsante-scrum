@@ -37,6 +37,14 @@ try:
         host.goto(base,wait_until='domcontentloaded')
         host.screenshot(path=str(ARTIFACTS/'01_inicio.png'),full_page=True)
         expected_words=['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV','Refinamiento','Sprint','Backlog']
+        host.locator('#create-theme').select_option('comida')
+        food_words=host.locator('#create-words').input_value().splitlines()
+        assert len(food_words)==10 and 'Arepa' in food_words
+        host.locator('#create-theme').select_option('musica')
+        music_words=host.locator('#create-words').input_value().splitlines()
+        assert len(music_words)==10 and 'Karaoke' in music_words
+        host.locator('#create-theme').select_option('tecnologia')
+        assert 'Inteligencia Artificial' in host.locator('#create-words').input_value()
         host.locator('#create-words').fill('Personalizada')
         host.locator('[data-action="scrum-theme"]').click()
         assert host.locator('#create-words').input_value().splitlines()==expected_words
@@ -47,6 +55,16 @@ try:
         assert len(code)==5,code
         host.locator('#room-qr svg').wait_for()
         assert host.locator('#lobby-words').input_value().splitlines()==expected_words
+        host.locator('#lobby-theme').select_option('musica')
+        host.locator('#words-form button[type=submit]').click()
+        host.get_by_text('Palabras guardadas',exact=True).wait_for()
+        host.reload(wait_until='domcontentloaded')
+        host.locator('#lobby-theme').wait_for()
+        assert host.locator('#lobby-theme').input_value()=='musica'
+        assert host.locator('#lobby-words').input_value().splitlines()==music_words
+        host.locator('[data-action="defaults"]').click()
+        host.locator('#words-form button[type=submit]').click()
+        host.get_by_text('Palabras guardadas',exact=True).wait_for()
         if redis:
             transport=host.evaluate('''async()=>{
                 const auth=JSON.parse(localStorage.getItem('farsanteAuth'));

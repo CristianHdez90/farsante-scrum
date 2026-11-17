@@ -2,7 +2,9 @@
   'use strict';
   const root=document.querySelector('#root');
   const toastEl=document.querySelector('#toast');
-  const HOME_WORDS=['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV','Refinamiento','Sprint','Backlog'];
+  const WORD_THEMES=globalThis.FarsanteThemes;
+  const HOME_WORDS=WORD_THEMES.scrum.words;
+  let lobbyDraft=null;
   let auth=loadAuth();
   let state=null;
   let stream=null;
@@ -105,9 +107,35 @@
     return `<header class="topbar"><div class="brand"><span class="brand-mark">🕵️</span><span>Farsante <strong>Scrum</strong></span></div><span class="tag">● SPRINT EDITION</span></header>`;
   }
   function shell(content){root.innerHTML=`<div class="shell">${header()}${content}<div class="footer">Diseñado para retrospectivas ágiles · Juega por Teams o en persona · Sin registro</div></div>`;updateCountdown();renderInvitation();}
+  function themeForWords(text){
+    const words=String(text).split('\n').map(w=>w.trim().toLocaleLowerCase('es')).filter(Boolean);
+    return Object.keys(WORD_THEMES).find(key=>{
+      const expected=WORD_THEMES[key].words;
+      return expected.length===words.length&&expected.every((w,i)=>w.toLocaleLowerCase('es')===words[i]);
+    })||'custom';
+  }
+  function themePicker(id,words){
+    const selected=themeForWords(words);
+    return `<label class="field" for="${id}">Elige un grupo de palabras</label><select id="${id}" class="theme-select"><option value="custom" ${selected==='custom'?'selected':''}>✍️ Palabras personalizadas</option>${Object.entries(WORD_THEMES).map(([key,theme])=>`<option value="${key}" ${selected===key?'selected':''}>${esc(theme.name)} · ${theme.words.length} palabras</option>`).join('')}</select><p class="hint">Al elegir un grupo, sus palabras se cargan en el editor. Puedes personalizarlas.</p>`;
+  }
+  function lobbyWords(){
+    const saved=state.words.join('\n');
+    if(lobbyDraft?.room!==state.code||lobbyDraft.saved!==saved)lobbyDraft={room:state.code,saved,value:saved};
+    return lobbyDraft.value;
+  }
+  function loadTheme(select){
+    const theme=WORD_THEMES[select.value];
+    if(!theme)return;
+    const isHome=select.id==='create-theme';
+    const textarea=$(isHome?'#create-words':'#lobby-words');
+    if(!textarea)return;
+    textarea.value=theme.words.join('\n');
+    if(isHome)wordsDraft=textarea.value;else lobbyDraft.value=textarea.value;
+    notify(isHome?`Tema ${theme.name} seleccionado`:`Tema ${theme.name} cargado. Pulsa Guardar palabras para aplicarlo.`);
+  }
   function renderHome() {
     shell(`<section class="hero"><span class="tag">🎭 EL JUEGO DEL IMPOSTOR PARA EQUIPOS ÁGILES</span><h1>¿Quién está<br><span class="gradient">fingiendo?</span></h1><p>Todos conocen la palabra secreta… excepto uno. Descubre al farsante entre tus compañeros de Scrum. Salas privadas, pistas por turnos y votaciones automáticas.</p><div class="three-feature"><span class="feature">⚡ En tiempo real</span><span class="feature">🗳️ Votaciones integradas</span><span class="feature">🎲 Orden aleatorio</span><span class="feature">🧩 Palabras Scrum y QA</span></div></section>
-    <section class="two-col"><div class="panel accent"><div class="card-emoji">🚀</div><h2>Crear una sala</h2><p class="description">Organiza tu retrospectiva e invita al equipo con un código de 5 letras.</p><form id="create-form"><label for="create-name" class="field">Tu nombre</label><input id="create-name" name="name" placeholder="Ej.: Alex - Scrum Master" minlength="2" maxlength="26" required autocomplete="nickname"/><label class="field" for="create-words">Palabras secretas (una por línea)</label><p class="hint">Tema disponible: Ceremonias Scrum y equipo.</p><button class="ghost small" type="button" data-action="scrum-theme">Usar tema Ceremonias Scrum</button><textarea id="create-words" name="words" spellcheck="false">${esc(wordsDraft)}</textarea><p class="hint">Se elegirá una palabra aleatoria. Usa al menos 3 diferentes. El tema incluye Planning, Review, Daily, Retro, Historia de Usuario, QA, DEV, Refinamiento, Sprint y Backlog.</p><div class="form-actions"><button class="primary full" type="submit">Crear mi sala →</button></div></form></div>
+    <section class="two-col"><div class="panel accent"><div class="card-emoji">🚀</div><h2>Crear una sala</h2><p class="description">Organiza tu retrospectiva e invita al equipo con un código de 5 letras.</p><form id="create-form"><label for="create-name" class="field">Tu nombre</label><input id="create-name" name="name" placeholder="Ej.: Alex - Scrum Master" minlength="2" maxlength="26" required autocomplete="nickname"/><label class="field" for="create-words">Palabras secretas (una por línea)</label>${themePicker('create-theme',wordsDraft)}<button class="ghost small" type="button" data-action="scrum-theme">Restaurar tema Scrum</button><textarea id="create-words" name="words" spellcheck="false">${esc(wordsDraft)}</textarea><p class="hint">Se elegirá una palabra aleatoria. Usa al menos 3 diferentes. Elige Scrum, Comida, Música o Tecnología e IA para variar las partidas.</p><div class="form-actions"><button class="primary full" type="submit">Crear mi sala →</button></div></form></div>
     <div class="panel"><div class="card-emoji">🔑</div><h2>Unirme a una sala</h2><p class="description">Ingresa el código compartido en Teams y prepárate para dar tu mejor pista.</p><form id="join-form">${invitationCode()?`<p class="invitation-notice">Te invitaron a la sala <strong>${esc(invitationCode())}</strong>. Escribe tu nombre para entrar.</p>`:''}<label class="field" for="join-name">Tu nombre</label><input id="join-name" name="name" placeholder="Ej.: Dani - QA" minlength="2" maxlength="26" required autocomplete="nickname"/><label class="field" for="join-code">Código de sala</label><input id="join-code" name="room" placeholder="ABCDE" maxlength="5" minlength="5" value="${esc(invitationCode())}" autocapitalize="characters" required style="letter-spacing:3px;font-weight:800"/><div class="form-actions"><button class="secondary full" type="submit">Unirme al juego →</button></div></form><div class="divider"></div><h3 style="font-size:15px">¿Cómo funciona?</h3><p class="description" style="margin-bottom:0">1. Mira tu rol secreto.<br>2. Da una pista cuando sea tu turno.<br>3. Debate y vota por el farsante.<br>4. Si lo atrapan, puede adivinar la palabra.</p></div></section>`);
     if(invitationCode())$('#join-form').scrollIntoView({block:'center'});
   }
@@ -152,7 +180,7 @@
     finally{starting=false;render();}
   }
   function renderLobby() {
-    shell(`${roomHeading()}<div class="game-layout"><div class="aside"><div class="panel"><div class="section-head"><h3 class="section-title">👥 Equipo conectado</h3><span class="tag">${state.players.length}/${state.maxPlayers}</span></div>${playersGrid()}<p class="hint" id="start-status">${esc(startStatus())}</p>${host()?`<button class="primary full" data-action="start" aria-describedby="start-status" ${starting||state.players.length<state.minPlayers||state.players.some(p=>!p.online)?'disabled':''}>${starting?'Iniciando partida…':'🎲 Iniciar juego'}</button>`:`<div class="log-placeholder">⏳ Esperando a que el anfitrión inicie...</div>`}<button class="ghost small" data-action="leave" style="margin-top:12px">Salir de la sala</button></div>${invitationPanel()}</div><div class="main"><div class="panel"><div class="eyebrow">CÓMO JUGAR</div><h2>¿Listos para descubrir al farsante?</h2><p class="faded">Al iniciar, cada persona recibe una palabra secreta. Una sola verá <b>IMPOSTOR</b>. Nadie, ni siquiera quien creó la sala, conoce la identidad del farsante.</p><div class="timeline"><span>01 · Rol secreto</span><span>02 · Pistas</span><span>03 · Debate</span><span>04 · Votación</span><span>05 · Resultado</span></div><div class="divider"></div><div class="section-head"><h3 class="section-title">🧩 Banco de palabras</h3><span class="tag">${state.wordCount} palabras</span></div>${host()?`<p class="description">Tema Ceremonias Scrum y equipo: Planning, Review, Daily, Retro, Historia de Usuario, QA, DEV, Refinamiento, Sprint y Backlog. Puedes usarlo o editar tus propias palabras.</p><form id="words-form"><textarea name="words" aria-label="Lista de palabras personalizadas" id="lobby-words">${esc(state.words.join('\n'))}</textarea><div class="controls"><button class="secondary" type="submit">💾 Guardar palabras</button><button class="ghost" type="button" data-action="defaults">Usar tema Ceremonias Scrum</button></div></form>`:`<div class="log-placeholder">El anfitrión configuró ${state.wordCount} palabras posibles. La palabra elegida será sorpresa. 🤫</div>`}</div></div></div>`);
+    shell(`${roomHeading()}<div class="game-layout"><div class="aside"><div class="panel"><div class="section-head"><h3 class="section-title">👥 Equipo conectado</h3><span class="tag">${state.players.length}/${state.maxPlayers}</span></div>${playersGrid()}<p class="hint" id="start-status">${esc(startStatus())}</p>${host()?`<button class="primary full" data-action="start" aria-describedby="start-status" ${starting||state.players.length<state.minPlayers||state.players.some(p=>!p.online)?'disabled':''}>${starting?'Iniciando partida…':'🎲 Iniciar juego'}</button>`:`<div class="log-placeholder">⏳ Esperando a que el anfitrión inicie...</div>`}<button class="ghost small" data-action="leave" style="margin-top:12px">Salir de la sala</button></div>${invitationPanel()}</div><div class="main"><div class="panel"><div class="eyebrow">CÓMO JUGAR</div><h2>¿Listos para descubrir al farsante?</h2><p class="faded">Al iniciar, cada persona recibe una palabra secreta. Una sola verá <b>IMPOSTOR</b>. Nadie, ni siquiera quien creó la sala, conoce la identidad del farsante.</p><div class="timeline"><span>01 · Rol secreto</span><span>02 · Pistas</span><span>03 · Debate</span><span>04 · Votación</span><span>05 · Resultado</span></div><div class="divider"></div><div class="section-head"><h3 class="section-title">🧩 Banco de palabras</h3><span class="tag">${state.wordCount} palabras</span></div>${host()?`<p class="description">Elige un grupo de 10 palabras o crea tu propia lista. Guarda los cambios antes de iniciar.</p><form id="words-form">${themePicker('lobby-theme',lobbyWords())}<textarea name="words" aria-label="Lista de palabras personalizadas" id="lobby-words">${esc(lobbyWords())}</textarea><div class="controls"><button class="secondary" type="submit">💾 Guardar palabras</button><button class="ghost" type="button" data-action="defaults">Restaurar tema Scrum</button></div></form>`:`<div class="log-placeholder">Grupo: ${esc(state.wordTheme)}. El anfitrión configuró ${state.wordCount} palabras posibles. La palabra elegida será sorpresa. 🤫</div>`}</div></div></div>`);
   }
   function roleCard(){
     const isImp=you().role==='impostor';
@@ -224,6 +252,17 @@
       default:return renderHome();
     }
   }
+  root.addEventListener('change',event=>{
+    if(['create-theme','lobby-theme'].includes(event.target.id))loadTheme(event.target);
+  });
+  root.addEventListener('input',event=>{
+    const textarea=event.target;
+    if(textarea.id==='create-words'){
+      wordsDraft=textarea.value;$('#create-theme').value=themeForWords(textarea.value);
+    }else if(textarea.id==='lobby-words'){
+      lobbyDraft.value=textarea.value;$('#lobby-theme').value=themeForWords(textarea.value);
+    }
+  });
   root.addEventListener('submit',async event=>{
     event.preventDefault();
     const form=event.target;
@@ -275,11 +314,11 @@
       }
       case 'scrum-theme':{
         const textarea=$('#create-words');
-        if(textarea){textarea.value=HOME_WORDS.join('\n');wordsDraft=textarea.value;}
+        if(textarea){textarea.value=HOME_WORDS.join('\n');wordsDraft=textarea.value;$('#create-theme').value='scrum';}
         notify('Tema Ceremonias Scrum aplicado. Puedes crear la sala.');break;
       }
       case 'defaults':{
-        const textarea=$('#lobby-words');if(textarea)textarea.value=HOME_WORDS.join('\n');
+        const textarea=$('#lobby-words');if(textarea){textarea.value=HOME_WORDS.join('\n');lobbyDraft.value=textarea.value;$('#lobby-theme').value='scrum';}
         notify('Lista restaurada en el editor; pulsa Guardar para aplicar');break;
       }
       case 'vote':if(selectedTarget)send('vote',{targetId:selectedTarget});break;
