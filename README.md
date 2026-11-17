@@ -11,6 +11,7 @@ Identidad y código originales; el modo local no requiere cuentas ni servicios e
 - Incluye el tema **Ceremonias Scrum y equipo**: Planning, Review, Daily, Retro, Historia de Usuario, QA, DEV, Refinamiento, Sprint y Backlog. Se usa por defecto y puede aplicarse desde la creación o la sala de espera; también permite palabras propias. En una sala existente, pulsa **Usar tema Ceremonias Scrum** y luego **Guardar palabras**.
 - Selecciona **una palabra y exactamente un farsante** aleatoriamente. Cada participante ve solo su propia carta.
 - Los jugadores confirman que vieron su rol (la fase de preparación termina al estar todos listos o tras 90 s).
+- Acepta pistas de una palabra o una frase de hasta **160 caracteres**, sin incluir la palabra secreta.
 - Sortea **orden de turnos en cada ronda**. Cada turno dura hasta 60 s; el anfitrión puede saltarlo.
 - Abre automáticamente un debate de 45 s y una **votación secreta de 75 s**.
 - Cuenta y presenta los votos. Si votan todos, el resultado sale enseguida. Para eliminar a alguien por tiempo o cierre anticipado se requiere participación de **al menos dos tercios**. Si hay empate o no hay cuórum, no se elimina a nadie.

@@ -128,6 +128,29 @@ test('Validaciones: entrada, turno incorrecto, votos duplicados y palabras insuf
     await assert.rejects(act(voter,'vote',{targetId:auths[2].playerId}),/Ya has votado/);
   }finally{closeStreams(streams);}
 });
+test('Pistas con frases: acepta espacios y más de 36 caracteres; valida límite, duplicados y palabra secreta',async()=>{
+  const {auths,streams}=await room3();
+  try{
+    await act(auths[0],'start');
+    await readyAll(auths);
+    const states=await Promise.all(auths.map(get));
+    const word=states.find(s=>s.me.word).me.word;
+    const turn=auths.find(a=>a.playerId===states[0].turnPlayerId);
+    await assert.rejects(act(turn,'clue',{clue:'   '}),/160 caracteres/);
+    await assert.rejects(act(turn,'clue',{clue:'x'.repeat(161)}),/160 caracteres/);
+    await assert.rejects(act(turn,'clue',{clue:`Me recuerda a (${word.toUpperCase()}) en el equipo`}),/palabra secreta/);
+    const phrase='Nos ayuda a coordinar el trabajo de todo el equipo durante la semana';
+    await act(turn,'clue',{clue:`  ${phrase.replaceAll(' ','  ')}  `});
+    const next=await get(auths[0]);
+    assert.equal(next.clues[0].clue,phrase);
+    assert.equal(next.turnIndex,1);
+    const nextTurn=auths.find(a=>a.playerId===next.turnPlayerId);
+    await assert.rejects(act(nextTurn,'clue',{clue:phrase.toUpperCase()}),/ya se utilizó/);
+    await act(nextTurn,'clue',{clue:'x'.repeat(160)});
+    assert.equal((await get(auths[0])).clues[1].clue.length,160);
+  }finally{closeStreams(streams);}
+});
+
 test('Cuatro jugadores: empate no elimina a nadie y siguiente ronda',async()=>{
   const {auths,streams}=await room3();
   try{

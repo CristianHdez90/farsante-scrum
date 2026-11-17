@@ -101,10 +101,11 @@ try:
         for n in range(3):
             name=host.locator('.turn-header h2').inner_text().strip().replace(' ✨','')
             current=pages[labels.index(name)]
-            current.locator('#clue').fill(['calidad','equipo','trabajo'][n])
+            current.locator('#clue').fill(['Nos ayuda a colaborar y compartir ideas','Lo hacemos con todo el equipo','Buscamos mejorar la forma de trabajar'][n])
             current.locator('#clue-form button[type=submit]').click()
             if n<2:
                 host.locator('.log-row').nth(n).wait_for(timeout=8000)
+                assert ' ' in host.locator('.log-clue').nth(n).inner_text()
         host.get_by_text('Momento de sospechar').wait_for(timeout=8000)
         host.locator('button[data-action="voting"]').click()
         for page in pages:page.get_by_text('¿Quién es el farsante?').wait_for(timeout=8000)

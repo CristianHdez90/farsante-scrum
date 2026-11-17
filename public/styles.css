@@ -101,3 +101,5 @@ label.field{display:block;font-weight:800;font-size:11px;letter-spacing:.5px;col
 .room-qr svg{display:block;width:100%;height:auto}
 .invitation input{font-size:12px;margin-bottom:12px}
 .invitation-notice{padding:12px;border:1px solid var(--mint);border-radius:12px;color:var(--mint)}
+
+.log-clue{min-width:0;flex:1;overflow-wrap:anywhere}
