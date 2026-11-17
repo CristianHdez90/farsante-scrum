@@ -151,6 +151,42 @@ test('Pistas con frases: acepta espacios y más de 36 caracteres; valida límite
   }finally{closeStreams(streams);}
 });
 
+test('Reiniciar en plena votación limpia el juego, conserva la sala y permite salir',async()=>{
+  const {auths,streams}=await room3();
+  try{
+    const words=(await get(auths[0])).words;
+    await act(auths[0],'start');
+    await readyAll(auths);
+    await feedClues(auths);
+    await act(auths[1],'vote',{targetId:auths[0].playerId});
+    const before=await get(auths[0]);
+    assert.equal(before.stage,'vote');
+    assert.equal(before.voteCount,1);
+    await assert.rejects(act(auths[1],'reset'),/Solo el anfitrión/);
+    const room=ROOMS.get(auths[0].room);
+    await act(auths[0],'reset');
+    assert.equal(room.timer,null);
+    for(const auth of auths){
+      const after=await get(auth);
+      assert.equal(after.code,before.code);
+      assert.equal(after.players.length,3);
+      assert.equal(after.stage,'lobby');
+      assert.equal(after.round,0);
+      assert.equal(after.me.role,null);
+      assert.equal(after.me.word,null);
+      assert.equal(after.voteCount,0);
+      assert.equal(after.readyCount,0);
+      assert.equal(after.deadline,null);
+      assert.deepEqual(after.clues,[]);
+      assert.deepEqual(after.order,[]);
+      assert.equal(after.reveal,undefined);
+    }
+    assert.deepEqual((await get(auths[0])).words,words);
+    await act(auths[2],'leave');
+    assert.equal((await get(auths[0])).players.length,2);
+  }finally{closeStreams(streams);}
+});
+
 test('Cuatro jugadores: empate no elimina a nadie y siguiente ronda',async()=>{
   const {auths,streams}=await room3();
   try{

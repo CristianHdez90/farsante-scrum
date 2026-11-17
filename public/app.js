@@ -14,6 +14,7 @@
   let toastTimer;
   let connectionCheck=null;
   let starting=false;
+  let resetting=false;
   let invitationCache=null;
   const invitationLink=()=>`${location.origin}/?sala=${encodeURIComponent(state.code)}`;
   const invitationCode=()=>(new URLSearchParams(location.search).get('sala')||'').replace(/[^a-z]/gi,'').toUpperCase().slice(0,5);
@@ -143,7 +144,22 @@
     return `<div class="player-grid">${state.players.map((p,i)=>`<div class="player-pill ${p.online?'':'offline'}"><div class="avatar">${esc(p.name.slice(0,1).toUpperCase())}</div><div style="min-width:0;flex:1"><div class="player-name" title="${esc(p.name)}">${esc(p.name)} ${p.id===you().id?'(tú)':''}</div><div class="player-hint">${p.eliminated?'Eliminado':p.host?'Anfitrión':'En sala'}</div></div><span class="status-dot ${p.online?'':'offline'}" title="${p.online?'Conectado':'Sin conexión'}"></span></div>`).join('')}</div>`;
   }
   function roomButton(){return `<div class="room-code"><div><div class="eyebrow" style="margin:0">CÓDIGO DE SALA</div><div class="code-big">${esc(state.code)}</div></div><button class="secondary small" data-action="copy">🔗 Compartir</button></div>`;}
-  function roomHeading(){return `<div class="page-header"><div><div class="eyebrow">SALA PRIVADA · <span id="netstatus">EN LÍNEA</span></div><h1 class="page-title">${state.stage==='lobby'?'Prepara tu partida':'La verdad está entre nosotros.'}</h1><p class="page-subtitle">${state.stage==='lobby'?'Invita a todos desde Teams. Nadie necesita registrarse.':`Ronda ${state.round} · ${active().length} jugadores en juego`}</p></div>${roomButton()}</div>`;}
+  function roomControls(){
+    const canReset=host()&&state.stage!=='lobby'&&state.stage!=='finished';
+    return `<div class="room-actions">${roomButton()}${canReset?`<button class="danger small" data-action="reset" ${resetting?'disabled':''} title="Volver a la sala de espera conservando los participantes y las palabras">${resetting?'Reiniciando…':'🔄 Reiniciar partida'}</button>`:''}</div>`;
+  }
+  async function resetGame(){
+    if(resetting||!auth)return;
+    resetting=true;render();
+    try{
+      const result=await request('/api/action',{...auth,type:'reset'});
+      showRole=false;selectedTarget='';lobbyDraft=null;
+      if(result.state)acceptState(result.state);
+      notify('Partida reiniciada. Ya pueden salir de la sala o iniciar otra partida.');
+    }catch(e){notify(e.message,true);}
+    finally{resetting=false;render();}
+  }
+  function roomHeading(){return `<div class="page-header"><div><div class="eyebrow">SALA PRIVADA · <span id="netstatus">EN LÍNEA</span></div><h1 class="page-title">${state.stage==='lobby'?'Prepara tu partida':'La verdad está entre nosotros.'}</h1><p class="page-subtitle">${state.stage==='lobby'?'Invita a todos desde Teams. Nadie necesita registrarse.':`Ronda ${state.round} · ${active().length} jugadores en juego`}</p></div>${roomControls()}</div>`;}
   function renderInvitation() {
     const target=$('#room-qr');
     if(!target)return;
@@ -307,6 +323,7 @@
         break;
       }
       case 'start':startGame();break;
+      case 'reset':resetGame();break;
       case 'role':showRole=!showRole;render();break;
       case 'ready':showRole=false;send('ready');break;
       case 'leave':{

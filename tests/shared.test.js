@@ -52,6 +52,16 @@ test('Dos instancias comparten salas, entradas y votos concurrentes sin perder a
   assert.equal((await get(host,1)).transport,'poll');
   await assert.rejects(act(auths[1],'start'),/Solo el anfitrión/);
   await act(host,'start',{},1);
+  await assert.rejects(act(auths[1],'reset'),/Solo el anfitrión/);
+  await act(host,'reset',{},1);
+  for(const auth of auths){
+    const reset=await get(auth);
+    assert.equal(reset.stage,'lobby');
+    assert.equal(reset.me.role,null);
+    assert.equal(reset.deadline,null);
+    assert.equal(reset.players.length,3);
+  }
+  await act(host,'start');
   const roles=await Promise.all(auths.map((auth,i)=>get(auth,i%2)));
   const imp=roles.find(s=>s.me.role==='impostor');
   assert.equal(roles.filter(s=>s.me.role==='impostor').length,1);

@@ -172,6 +172,16 @@ try:
         all_pages=pages+[mobile_page]
         all_labels=labels+['Movil']
         host.locator('button[data-action="start"]').click()
+        host.locator('button[data-action="role"]').wait_for(timeout=8000)
+        host.locator('button[data-action="reset"]').wait_for()
+        assert mobile_page.locator('button[data-action="reset"]').count()==0
+        host.locator('button[data-action="reset"]').click()
+        for page in all_pages:
+            page.get_by_text('Prepara tu partida').wait_for(timeout=8000)
+            assert page.locator('.player-pill').count()==4
+            assert page.locator('button[data-action="leave"]').is_visible()
+        print('PASS: Reinicio durante la partida regresa a todos a la sala de espera y permite salir.')
+        host.locator('button[data-action="start"]').click()
         second_cards=[]
         for page in all_pages:
             page.locator('button[data-action="role"]').wait_for(timeout=8000)
