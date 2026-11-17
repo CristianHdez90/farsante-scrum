@@ -8,7 +8,7 @@ Identidad y código originales; el modo local no requiere cuentas ni servicios e
 - Crea salas de 3–12 participantes con código privado de cinco letras y enlace para compartir por Teams.
 - Muestra un código QR y un enlace de invitación en la sala de espera; al escanearlo se abre el formulario con el código de sala ya ingresado.
 - El botón **Iniciar juego** indica cuántos participantes faltan o quién debe reconectarse, y se habilita con al menos tres jugadores conectados.
-- Permite añadir palabras propias: Scrum, Sprint, Daily, HA, QA, Bug, etc.
+- Incluye el tema **Ceremonias Scrum y equipo**: Planning, Review, Daily, Retro, Historia de Usuario, QA y DEV. Se usa por defecto y puede aplicarse desde la creación o la sala de espera; también permite palabras propias. En una sala existente, pulsa **Usar tema Ceremonias Scrum** y luego **Guardar palabras**.
 - Selecciona **una palabra y exactamente un farsante** aleatoriamente. Cada participante ve solo su propia carta.
 - Los jugadores confirman que vieron su rol (la fase de preparación termina al estar todos listos o tras 90 s).
 - Sortea **orden de turnos en cada ronda**. Cada turno dura hasta 60 s; el anfitrión puede saltarlo.

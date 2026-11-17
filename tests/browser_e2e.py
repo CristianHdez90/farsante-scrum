@@ -36,12 +36,17 @@ try:
         host=pages[0]
         host.goto(base,wait_until='domcontentloaded')
         host.screenshot(path=str(ARTIFACTS/'01_inicio.png'),full_page=True)
+        expected_words=['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV']
+        host.locator('#create-words').fill('Personalizada')
+        host.locator('[data-action="scrum-theme"]').click()
+        assert host.locator('#create-words').input_value().splitlines()==expected_words
         host.locator('#create-name').fill(labels[0])
         host.locator('#create-form button[type=submit]').click()
         host.locator('.code-big').wait_for()
         code=host.locator('.code-big').inner_text()
         assert len(code)==5,code
         host.locator('#room-qr svg').wait_for()
+        assert host.locator('#lobby-words').input_value().splitlines()==expected_words
         if redis:
             transport=host.evaluate('''async()=>{
                 const auth=JSON.parse(localStorage.getItem('farsanteAuth'));
@@ -89,7 +94,7 @@ try:
         assert cards.count('IMPOSTOR')==1,cards
         impostor_index=cards.index('IMPOSTOR')
         word=cards[(impostor_index+1)%3]
-        assert word in ['Scrum','Sprint','Daily','HA','Backlog','Refinamiento','QA','Bug','Regresión','Retrospectiva','Automatización','Definition of Done','Planning','Sprint Goal','Historia de usuario','Criterios de aceptación','Pruebas API','Deploy','CI/CD','Smoke Testing']
+        assert word in ['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV']
         for page in pages:page.locator('button[data-action="ready"]').click()
         host.get_by_text('Turno de pistas').wait_for(timeout=8000)
         host.screenshot(path=str(ARTIFACTS/'02_turnos.png'),full_page=True)
