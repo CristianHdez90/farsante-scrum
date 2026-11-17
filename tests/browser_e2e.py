@@ -36,7 +36,7 @@ try:
         host=pages[0]
         host.goto(base,wait_until='domcontentloaded')
         host.screenshot(path=str(ARTIFACTS/'01_inicio.png'),full_page=True)
-        expected_words=['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV']
+        expected_words=['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV','Refinamiento','Sprint','Backlog']
         host.locator('#create-words').fill('Personalizada')
         host.locator('[data-action="scrum-theme"]').click()
         assert host.locator('#create-words').input_value().splitlines()==expected_words
@@ -94,7 +94,7 @@ try:
         assert cards.count('IMPOSTOR')==1,cards
         impostor_index=cards.index('IMPOSTOR')
         word=cards[(impostor_index+1)%3]
-        assert word in ['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV']
+        assert word in ['Planning','Review','Daily','Retro','Historia de Usuario','QA','DEV','Refinamiento','Sprint','Backlog']
         for page in pages:page.locator('button[data-action="ready"]').click()
         host.get_by_text('Turno de pistas').wait_for(timeout=8000)
         host.screenshot(path=str(ARTIFACTS/'02_turnos.png'),full_page=True)
@@ -120,10 +120,14 @@ try:
             assert labels[impostor_index] in verdict,verdict
             assert 'Sí, era el impostor' in verdict,verdict
             assert '2 votos de 3 emitidos' in verdict,verdict
+            assert page.locator('[data-scrum-reflection]').count()==0
         imp=pages[impostor_index]
         imp.locator('#guess').fill(word)
         imp.locator('#guess-form button[type=submit]').click()
         for page in pages:page.get_by_text('¡El impostor ganó!').wait_for(timeout=8000)
+        for page in pages:
+            assert len(page.locator('[data-scrum-reflection]').inner_text())>50
+            assert word in page.locator('.accent-quote').inner_text()
         host.screenshot(path=str(ARTIFACTS/'04_resultado.png'),full_page=True)
         host.locator('button[data-action="reset"]').click()
         host.get_by_text('Prepara tu partida').wait_for(timeout=8000)
@@ -145,6 +149,40 @@ try:
         assert mobile_page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
         mobile_page.screenshot(path=str(ARTIFACTS/'06_sala_movil.png'),full_page=True)
         print('PASS: Interfaz móvil sin desbordamiento horizontal.')
+        # A wrong accusation ends the game and reveals the actual impostor to everyone.
+        all_pages=pages+[mobile_page]
+        all_labels=labels+['Movil']
+        host.locator('button[data-action="start"]').click()
+        second_cards=[]
+        for page in all_pages:
+            page.locator('button[data-action="role"]').wait_for(timeout=8000)
+            page.locator('button[data-action="role"]').click()
+            second_cards.append(page.locator('.role-text').inner_text().strip())
+            page.locator('button[data-action="ready"]').click()
+        host.get_by_text('Turno de pistas').wait_for(timeout=8000)
+        host.evaluate('''async()=>{
+            const auth=JSON.parse(localStorage.getItem('farsanteAuth'));
+            for(const type of ['skip','skip','skip','skip','voting']){
+                const res=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...auth,type})});
+                if(!res.ok)throw new Error(await res.text());
+            }
+        }''')
+        real_imp=second_cards.index('IMPOSTOR')
+        innocent_index=next(i for i,card in enumerate(second_cards) if card!='IMPOSTOR')
+        for i,page in enumerate(all_pages):
+            page.get_by_text('¿Quién es el farsante?').wait_for(timeout=8000)
+            target=all_labels[real_imp if i==innocent_index else innocent_index]
+            page.locator('.vote-option',has_text=target).click()
+            page.locator('button[data-action="vote"]').click()
+        for page in all_pages:
+            page.get_by_text('¡El impostor ganó!').wait_for(timeout=8000)
+            summary=page.locator('[data-innocent-result]')
+            assert all_labels[innocent_index]+' no era el impostor' in summary.inner_text()
+            assert summary.locator('strong').inner_text()==all_labels[real_imp]
+            assert '3 votos de 4 emitidos' in page.locator('[data-vote-verdict]').inner_text()
+            assert len(page.locator('[data-scrum-reflection]').inner_text())>50
+        host.screenshot(path=str(ARTIFACTS/'07_inocente_impostor.png'),full_page=True)
+        print('PASS: Inocente más votado; cuatro jugadores ven al verdadero impostor y la reflexión.')
         browser.close()
 finally:
     server.terminate()

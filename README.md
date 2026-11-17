@@ -8,16 +8,17 @@ Identidad y código originales; el modo local no requiere cuentas ni servicios e
 - Crea salas de 3–12 participantes con código privado de cinco letras y enlace para compartir por Teams.
 - Muestra un código QR y un enlace de invitación en la sala de espera; al escanearlo se abre el formulario con el código de sala ya ingresado.
 - El botón **Iniciar juego** indica cuántos participantes faltan o quién debe reconectarse, y se habilita con al menos tres jugadores conectados.
-- Incluye el tema **Ceremonias Scrum y equipo**: Planning, Review, Daily, Retro, Historia de Usuario, QA y DEV. Se usa por defecto y puede aplicarse desde la creación o la sala de espera; también permite palabras propias. En una sala existente, pulsa **Usar tema Ceremonias Scrum** y luego **Guardar palabras**.
+- Incluye el tema **Ceremonias Scrum y equipo**: Planning, Review, Daily, Retro, Historia de Usuario, QA, DEV, Refinamiento, Sprint y Backlog. Se usa por defecto y puede aplicarse desde la creación o la sala de espera; también permite palabras propias. En una sala existente, pulsa **Usar tema Ceremonias Scrum** y luego **Guardar palabras**.
 - Selecciona **una palabra y exactamente un farsante** aleatoriamente. Cada participante ve solo su propia carta.
 - Los jugadores confirman que vieron su rol (la fase de preparación termina al estar todos listos o tras 90 s).
 - Sortea **orden de turnos en cada ronda**. Cada turno dura hasta 60 s; el anfitrión puede saltarlo.
 - Abre automáticamente un debate de 45 s y una **votación secreta de 75 s**.
 - Cuenta y presenta los votos. Si votan todos, el resultado sale enseguida. Para eliminar a alguien por tiempo o cierre anticipado se requiere participación de **al menos dos tercios**. Si hay empate o no hay cuórum, no se elimina a nadie.
-- Si se elimina un inocente, comienza una nueva ronda (automáticamente después de 18 s, o de inmediato por el anfitrión).
+- Si un inocente recibe la mayor cantidad de votos sin empate y con cuórum, termina la partida con victoria del impostor. Se muestra quién fue señalado, sus votos, el verdadero impostor, la palabra y su reflexión Scrum. En empate o falta de cuórum, la identidad sigue oculta y comienza otra ronda después de 18 s o cuando lo indique el anfitrión.
 - Si se identifica al impostor, puede intentar adivinar la palabra durante 45 s. Si quedan dos jugadores vivos y el farsante no ha sido descubierto, gana el farsante.
 - El anfitrión puede reiniciar la partida con el mismo grupo. La sesión persiste en el navegador al recargar, mientras el servidor conserve la sala.
 - Los datos de votos individuales **no** se comparten; solo el recuento final. No permite votarse a sí mismo.
+- Al finalizar la partida después de la votación y, si corresponde, la adivinanza, muestra una reflexión y una pregunta específicas para la palabra jugada. Incluye las 10 palabras del tema Scrum y una reflexión general para palabras personalizadas. Se mantiene oculta mientras el impostor aún puede adivinar.
 - Responsive para móvil y escritorio, sin registro.
 
 ## Ejecutar en tu equipo

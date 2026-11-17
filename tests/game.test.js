@@ -91,7 +91,7 @@ test('Sala, cartas secretas, orden automático, votos y adivinanza correcta',asy
     assert.equal((await get(auths[0])).stage,'lobby');
   }finally{closeStreams(streams);}
 });
-test('Eliminación de inocente inicia ronda nueva y no filtra la identidad del farsante',async()=>{
+test('Votar por un inocente termina la partida y revela al verdadero impostor',async()=>{
   const {auths,streams}=await room3();
   try {
     await act(auths[0],'start');
@@ -156,7 +156,7 @@ test('Cuatro jugadores: empate no elimina a nadie y siguiente ronda',async()=>{
     assert.equal(next.players.filter(p=>!p.eliminated).length,4);
   }finally{closeStreams(streams);}
 });
-test('Cuatro jugadores: un inocente eliminado, la partida continúa con tres',async()=>{
+test('Cuatro jugadores: el inocente más votado termina la partida y todos ven al verdadero impostor',async()=>{
   const {auths,streams}=await room3();
   try{
     const d=await post('/api/join',{room:auths[0].room,name:'PO'});
@@ -172,12 +172,21 @@ test('Cuatro jugadores: un inocente eliminado, la partida continúa con tres',as
       await act(auth,'vote',{targetId:own===innocent.me.id?imp.me.id:innocent.me.id});
     }
     const after=await get(auths[0]);
-    assert.equal(after.stage,'reveal');assert.equal(after.outcome,'innocent');
+    assert.equal(after.stage,'finished');assert.equal(after.outcome,'innocent');
     assert.equal(after.lastRemoved.id,innocent.me.id);
-    await act(auths[0],'next');
-    const next=await get(auths[0]);
-    assert.equal(next.stage,'clues');assert.equal(next.round,2);
-    assert.equal(next.order.length,3);
+    assert.equal(after.lastRemoved.wasImpostor,false);
+    assert.equal(after.winner,'impostor');
+    assert.equal(after.deadline,null);
+    assert.equal(after.votingResults[0].votes,3);
+    for(const auth of auths){
+      const result=await get(auth);
+      assert.equal(result.reveal.impostor,imp.me.name);
+      assert.equal(result.reveal.word,innocent.me.word);
+      assert.ok(result.reveal.reflection);
+    }
+    await assert.rejects(act(auths[0],'next'),/No se puede iniciar/);
+    await act(auths[0],'reset');
+    assert.equal((await get(auths[0])).stage,'lobby');
   }finally{closeStreams(streams);}
 });
 test('El anfitrión puede salir del lobby y ceder el control',async()=>{

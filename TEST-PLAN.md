@@ -14,7 +14,7 @@ Funcionalidad de sala, seguridad de roles, ciclos de pistas, límites temporales
 | QA-006 | Votar dos veces o por uno mismo | Servidor rechaza el intento | PASA (API) |
 | QA-007 | Pistas y votación completas | Resultados coherentes y privados antes del cierre | PASA (API) |
 | QA-008 | Un empate | No hay eliminación; nueva ronda | PASA (API) |
-| QA-009 | Eliminación de inocente | Se mantiene oculto el farsante | PASA (API) |
+| QA-009 | Inocente más votado con cuórum y sin empate | Termina la partida; todos ven al verdadero impostor, palabra y reflexión | PASA (API) |
 | QA-010 | Identificar farsante | Solo él puede adivinar palabra | PASA (API) |
 | QA-011 | Cierre con menos de dos tercios de votos | Servidor rechaza cierre anticipado | PASA (API) |
 | QA-012 | Desconexión durante votación | Total exigido no se reduce | PASA (API) |
