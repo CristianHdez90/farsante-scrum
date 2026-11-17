@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+tests
+*.zip
+README.md
+.test-tools
+test-output
+__pycache__

@@ -1,0 +1,10 @@
+.git
+.github
+.test-tools
+test-output
+__pycache__
+node_modules
+.env
+.env.*
+tests
+*.log

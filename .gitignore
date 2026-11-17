@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.env
+.env.*
+!.env.example
+.vercel/
+public/vendor/
+coverage/
+*.log
+.test-tools/
+test-output/
+__pycache__/
